@@ -47,7 +47,7 @@ python setup.py develop
 
 ## Training
 ### Data Preparation
-- Download the training dataset [ImageNet](https://data.vision.ee.ethz.ch/cvl/DIV2K/) and put them in the folder `./datasets`.
+- Download the training dataset [ImageNet](https://image-net.org/download.php) and put them in the folder `./datasets`.
 
 ### Training Commands
 - Refer to the training configuration files in `./options/train` folder for detailed settings.
