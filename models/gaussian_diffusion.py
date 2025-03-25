@@ -562,24 +562,18 @@ class GaussianDiffusion:
             noise = self.encode_first_stage(noise)
         
         x_t = self.q_sample(x_start, y, y_hat, un, t, noise=noise)
-        # print('-' * 100)
-        # print('y', y.std(), un.std(), un.mean(), un.mean()**2 + un.std())
-        # print('x_t', self._scale_input(x_t, t).std(), (x_t / torch.sqrt(_extract_into_tensor(self.etas, t, x_t.shape) * self.kappa**2 * (un.mean()**2 + un.std()) + 0.25)).std())
 
         terms = {}
 
         if self.loss_type == LossType.MSE or self.loss_type == LossType.WEIGHTED_MSE:
             model_output = model(self._scale_input(x_t, un, t), t, **model_kwargs)
-            # print(f"std_noise={noise.std().item():.5f}, std_x_start={x_start.std().item():.5f}, std_x_t={x_t.std().item():.5f}, std_y={y.std().item():.5f}, std_output={model_output.std().item():.5f}")
             target = {
                 ModelMeanType.START_X: x_start,
                 ModelMeanType.RESIDUAL: y - x_start,
                 ModelMeanType.EPSILON: noise,
                 ModelMeanType.EPSILON_SCALE: noise*self.kappa*_extract_into_tensor(self.sqrt_etas, t, noise.shape)*un,
             }[self.model_mean_type]
-            # print(f"std_START_X={x_start.std().item():.5f}, std_RESIDUAL={(y - x_start).std().item():.5f}, std_EPSILON={(noise).std().item():.5f}, std_EPSILON_SCALE={(noise*self.kappa*_extract_into_tensor(self.sqrt_etas, t, noise.shape)*un).std().item():.5f}")
             assert target.shape == x_start.shape
-            # print(target.shape, model_output.shape, nn.PixelShuffle(self.sf)(target).shape)
             terms["mse"] = mean_flat((nn.PixelShuffle(self.sf)(target) - model_output) ** 2)
             if self.model_mean_type == ModelMeanType.EPSILON_SCALE:
                 terms["mse"] /= (self.kappa**2 * _extract_into_tensor(self.etas, t, t.shape))
@@ -606,13 +600,10 @@ class GaussianDiffusion:
 
     def _scale_input(self, inputs, un, t):
         if self.normalize_input:
-            # std = torch.sqrt(_extract_into_tensor(self.etas, t, inputs.shape) * (un.mean()**2 + un.std()**2) * self.kappa**2 + 0.25)
+            # var_un = torch.sqrt(_extract_into_tensor(self.etas, t, inputs.shape) * (un.mean()**2 + un.std()**2) * self.kappa**2 + 0.5**2)
             var_un = 0.3
-            # print(var_un)
-            std = torch.sqrt(_extract_into_tensor(self.etas, t, inputs.shape) * self.kappa**2 * var_un + 0.25)
+            std = torch.sqrt(_extract_into_tensor(self.etas, t, inputs.shape) * self.kappa**2 * var_un + 0.5**2)
             inputs_norm = inputs / std
-            # print(np.sqrt(self.etas[t[0].item()] * self.kappa**2 * var_un + 0.25), inputs.mean().item(), inputs.std().item())
-            # print(inputs_norm.mean().item(), inputs_norm.std().item())
         else:
             inputs_norm = inputs
         return inputs_norm
@@ -643,8 +634,6 @@ class GaussianDiffusion:
             model_kwargs=model_kwargs,
         )
         pred_xstart = out["pred_xstart"]
-        # residual = y - pred_xstart
-        # eps = self._predict_eps_from_xstart(x, y, t, pred_xstart)
         etas = _extract_into_tensor(self.etas, t, x.shape)
         etas_prev = _extract_into_tensor(self.etas_prev, t, x.shape)
         alpha = _extract_into_tensor(self.alpha, t, x.shape)
@@ -688,8 +677,6 @@ class GaussianDiffusion:
         Same usage as p_sample_loop().
         """
         final = None
-        # path = f'/home/zhangleheng/work/ATDShift/mytest/a_test_487/{y[0][0][111][111]:.4f}'
-        # cnt = 0
         for sample in self.ddim_sample_loop_progressive(
             y=y, y_hat=y_hat, un=un,
             model=model,
@@ -705,11 +692,6 @@ class GaussianDiffusion:
             one_step=one_step,
         ):
             final = sample["sample"]
-            # img = transforms.ToPILImage()((nn.PixelShuffle(self.sf)(sample["pred_xstart"])[0] * 0.5 + 0.5).clamp_(0., 1.))
-            # img.save(path + f'_{cnt}.png')
-            # img = transforms.ToPILImage()((nn.PixelShuffle(self.sf)(sample["sample"])[0] * 0.5 + 0.5).clamp_(0., 1.))
-            # img.save(path + f'_{cnt}_n.png')
-            # cnt += 1
         return nn.PixelShuffle(self.sf)(final)
 
     def ddim_sample_loop_progressive(

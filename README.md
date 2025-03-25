@@ -80,7 +80,12 @@ CUDA_VISIBLE_DEVICES=0 python test.py -opt options/001_UPSR_RealSR_x4.yml
 ## Citation
 
 ```
-
+@article{zhang2025uncertainty,
+  title={Uncertainty-guided Perturbation for Image Super-Resolution Diffusion Model},
+  author={Zhang, Leheng and You, Weiyi and Shi, Kexuan and Gu, Shuhang},
+  journal={arXiv preprint arXiv:2503.18512},
+  year={2025}
+}
 ```
 
 ## Acknowledgements
