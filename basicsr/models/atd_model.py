@@ -86,8 +86,6 @@ class ATDModel(SRModel):
                     if 'lpips' in name:
                         opt_['lpips_loss'] = self.lpips
                     self.metric_results[name] += calculate_metric(metric_data, opt_)
-                    # if 'lpips' in name:
-                    #     print(f'img: {img_name} lpips: {sss:.4f}')
             if use_pbar:
                 pbar.update(1)
                 pbar.set_description(f'Test {img_name}')

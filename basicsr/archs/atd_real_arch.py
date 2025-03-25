@@ -640,9 +640,6 @@ class BasicBlock(nn.Module):
         td = self.td.repeat([b, 1, 1])
         for layer in self.layers:
             td = F.normalize(td, dim=-1)
-            # adjust the value of idx_checkpoint to change the number of layers processed by checkpoint_wrapper
-            # increase the value of idx_checkpoint could save more GPU memory footprint but slow down the training
-            # idx_checkpoint need to be set as at least 4 for eight 24G GPU when training ATD
             idx_checkpoint = 2
             if self.use_checkpoint and self.idx < idx_checkpoint:
                 layer = checkpoint_wrapper(layer, offload_to_cpu=False)
@@ -1078,7 +1075,6 @@ class ATD(nn.Module):
 
         for layer in self.layers:
             x = layer(x, x_size, params)
-            # print(x.mean())
 
         x = self.norm(x)  # b seq_len c
         x = self.patch_unembed(x, x_size)
