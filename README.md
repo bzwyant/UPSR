@@ -2,7 +2,7 @@
 
 This repository is an official implementation of the paper "Uncertainty-guided Perturbation for Image Super-Resolution Diffusion Model", CVPR, 2025.
 
-[[arXiv](https://arxiv.org/abs/2503.18512)] [[Pretrained Models (coming soon)](https://drive.google.com/drive/folders/1Rde_8kTeNEA4kjUqCv2tiXV0vmmVCKGR?usp=sharing)]
+[[arXiv](https://arxiv.org/abs/2503.18512)] [[Pretrained Models](https://drive.google.com/drive/folders/1Rde_8kTeNEA4kjUqCv2tiXV0vmmVCKGR?usp=sharing)]
 
 By [Leheng Zhang](https://scholar.google.com/citations?user=DH1CJqkAAAAJ), 
 [Weiyi You](), [Kexuan Shi](https://scholar.google.com/citations?user=dX-aOIwAAAAJ), and [Shuhang Gu](https://scholar.google.com/citations?user=-kSTt40AAAAJ).
