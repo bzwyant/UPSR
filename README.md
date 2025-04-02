@@ -47,7 +47,7 @@ python setup.py develop
 
 ## Training
 ### Data Preparation
-- Download the training dataset [ImageNet](https://image-net.org/download.php) and put them in the folder `./datasets`.
+- Download the training dataset [ImageNet](https://image-net.org/challenges/LSVRC/2012/2012-downloads.php) and put them in the folder `./datasets`.
 
 ### Training Commands
 - Refer to the training configuration files in `./options/train` folder for detailed settings.
