@@ -47,10 +47,10 @@ class RealESRGANDataset(data.Dataset):
                 raise ValueError(f"'dataroot_gt' should end with '.lmdb', but received {self.gt_folder}")
             with open(osp.join(self.gt_folder, 'meta_info.txt')) as fin:
                 self.paths = [line.split('.')[0] for line in fin]
-        elif 'meta_info' in self.opt and self.opt['meta_info'] is not None:
+        elif 'meta_info_file' in self.opt and self.opt['meta_info_file'] is not None:
             # disk backend with meta_info
             # Each line in the meta_info describes the relative path to an image
-            with open(self.opt['meta_info']) as fin:
+            with open(self.opt['meta_info_file']) as fin:
                 paths = [line.strip().split(' ')[0] for line in fin]
                 self.paths = [os.path.join(self.gt_folder, v) for v in paths]
         else:
