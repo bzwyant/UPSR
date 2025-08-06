@@ -19,3 +19,4 @@ torchvision
 tqdm
 # xformers
 yapf
+galaxy_datasets==0.0.24
