@@ -7,7 +7,7 @@ script_dir = pathlib.Path(__file__)
 root = script_dir.parent.parent.parent  # Go up to the root of the project
 
 file_client = FileClient('disk')
-gt_folder = script_dir / '/datasets/galaxy_mnist/gt'
+gt_folder = script_dir / 'basicsr/datasets/galaxy_mnist/gt'
 paths = sorted(list(scandir(gt_folder, full_path=True)))
 
 for path in paths:
