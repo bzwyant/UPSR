@@ -10,17 +10,19 @@ def download_data(phase='train'):
     data_path = root / 'basicsr' / 'datasets' / 'galaxy_mnist' / phase
     data_path.mkdir(parents=True, exist_ok=True)
 
-    catalog, label_cols = galaxy_mnist(
-        root=data_path,
-        train=(phase == 'train'),
-        download=True
-    )
+    # if the dataset is already downloaded, skip
+    if not data_path.exists():
+        catalog, label_cols = galaxy_mnist(
+            root=data_path,
+            train=(phase == 'train'),
+            download=True
+        )
 
-    images_dir = data_path / 'images'
-    for file_path in images_dir.iterdir():
-        file_path.rename(data_path / file_path.name)
+        images_dir = data_path / 'images'
+        for file_path in images_dir.iterdir():
+            file_path.rename(data_path / file_path.name)
 
-    os.rmdir(images_dir)  # Remove the empty images directory
+        os.rmdir(images_dir)  # Remove the empty images directory
 
 if __name__ == '__main__':
     # download_data('train')

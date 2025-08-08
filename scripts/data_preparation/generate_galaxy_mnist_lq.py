@@ -7,13 +7,15 @@ script_dir = pathlib.Path(__file__)
 root = script_dir.parent.parent.parent  # Go up to the root of the project
 
 file_client = FileClient('disk')
-gt_folder = script_dir / 'basicsr/datasets/galaxy_mnist/gt'
+gt_folder = root / 'basicsr/datasets/galaxy_mnist/gt'
 paths = sorted(list(scandir(gt_folder, full_path=True)))
 
 for path in paths:
+    if not path.endswith('.jpg'):
+        continue
     img_bytes = file_client.get(path, 'gt')
     img_gt = imfrombytes(img_bytes, float32=True)
-    img_lq = imresize(img_gt, 0.25)
+    img_lq = imresize(img_gt, 0.5)
     lq_path = path.replace('gt', 'lq_bicubic_matlab')
     # print(img_lq*255)
     imwrite(img_lq*255, lq_path)
