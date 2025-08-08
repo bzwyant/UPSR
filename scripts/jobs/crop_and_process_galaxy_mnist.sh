@@ -8,16 +8,16 @@
 #SBATCH -n 1    # Number of tasks
 #SBATCH -t 1:00:00  # Max runtime
 #SBATCH --mem=16G   # Memory allocation
-#SBATCH --output=crop_%j.log   # Log file (SLURM_JOB_ID included)
+#SBATCH --output=logs/crop_%j.log   # Log file (SLURM_JOB_ID included)
 
 
 # Ensure real-time logging
 export PYTHONUNBUFFERED=1
 
 # Activate virtual environment
-module load mamba
-mamba init
-mamba activate UPSR
+module purge
+module load mamba/23.1.0
+source activate UPSR
 
 # get path to root folder
 PATH_TO_DATASET="basicsr/datasets/galaxy_mnist"
