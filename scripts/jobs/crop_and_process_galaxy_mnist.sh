@@ -28,4 +28,4 @@ time python scripts/data_preparation/crop_galaxy_mnist.py \
     --input_dir "${PATH_TO_DATASET}/train" \
     --output_dir_128 "${PATH_TO_DATASET}/train/gt" \
     --output_dir_64 "${PATH_TO_DATASET}/train/lq" \
-    --batch-size 64
+    --batch_size 64
