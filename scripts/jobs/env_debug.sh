@@ -11,17 +11,13 @@
 #SBATCH --output=logs/env_debug_%j.log   # Log file (SLURM_JOB_ID included)
 
 module purge
-module load mamba/23.1.0
 
 # Initialize conda/mamba for batch environment
 eval "$(conda shell.bash hook)"
 
 # Activate environment
-mamba activate UPSR
+conda activate /home/tlf3755/.conda/envs/UPSR
 
 # Verify environment is working (optional debug)
 echo "Python path: $(which python)"
 python -c "import torch; print('PyTorch version:', torch.__version__); print('CUDA available:', torch.cuda.is_available())"
-
-# Run your script
-python /gpfs/projects/e32704/ben/UPSR/scripts/data_preparation/crop_galaxy_mnist.py
