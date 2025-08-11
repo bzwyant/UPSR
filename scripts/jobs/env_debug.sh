@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=galaxy_mnist_processing
+#SBATCH --job-name=env_debug
 #SBATCH --partition=short
 #SBATCH -A e32704   # Account name
 #SBATCH -p gengpu   # GPU Partition

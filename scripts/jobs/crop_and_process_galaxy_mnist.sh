@@ -26,6 +26,6 @@ PATH_TO_DATASET="basicsr/datasets/galaxy_mnist"
 # Run image processing script and log output
 time python scripts/data_preparation/crop_galaxy_mnist.py \
     --input_dir "${PATH_TO_DATASET}/train" \
-    --output-128 "${PATH_TO_DATASET}/train/gt" \
-    --output-64 "${PATH_TO_DATASET}/train/lq" \
+    --output_dir_128 "${PATH_TO_DATASET}/train/gt" \
+    --output_dir_64 "${PATH_TO_DATASET}/train/lq" \
     --batch-size 64
