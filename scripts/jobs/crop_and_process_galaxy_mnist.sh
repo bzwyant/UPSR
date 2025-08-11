@@ -11,13 +11,13 @@
 #SBATCH --output=logs/crop_%j.log   # Log file (SLURM_JOB_ID included)
 
 
-# Ensure real-time logging
-export PYTHONUNBUFFERED=1
-
 # Activate virtual environment
 module purge
 module load mamba/23.1.0
 source activate UPSR
+
+# Ensure real-time logging
+export PYTHONUNBUFFERED=1
 
 # get path to root folder
 PATH_TO_DATASET="basicsr/datasets/galaxy_mnist"
