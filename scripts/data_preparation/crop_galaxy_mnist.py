@@ -4,7 +4,7 @@ import os
 import argparse
 from pathlib import Path
 import torch
-from torchvision.transforms import Compose, ToTensor, CenterCrop, ToPILImage
+from torchvision.transforms import ToTensor, ToPILImage
 import torch.nn.functional as F
 from tqdm import tqdm
 from PIL import Image
