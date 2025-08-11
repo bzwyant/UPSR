@@ -9,6 +9,7 @@ data_path = root / "basicsr" / "datasets" / "galaxy_mnist"
 
 def split_dataset():
     # Path to train/gt folder
+    print(f"Data path: {data_path}")
     train_gt_path = data_path / "train" / "gt"
     train_lq_path = data_path / "train" / "lq"
     
