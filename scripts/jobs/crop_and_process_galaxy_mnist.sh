@@ -13,8 +13,9 @@
 
 # Activate virtual environment
 module purge
-module load mamba/23.1.0
-source activate UPSR
+
+eval "$(conda shell.bash hook)"
+conda activate /home/tlf3755/.conda/envs/UPSR
 
 # Ensure real-time logging
 export PYTHONUNBUFFERED=1
