@@ -4,7 +4,7 @@ import random
 from pathlib import Path
 
 script_dir = Path(__file__).parent
-root = script_dir.parent.parent.parent
+root = script_dir.parent.parent
 data_path = root / "basicsr" / "datasets" / "galaxy_mnist"
 
 def split_dataset():

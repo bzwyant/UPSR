@@ -1,0 +1,245 @@
+
+# general settings
+name: UPSR_galaxy
+model_target: basicsr.models.upsr_real_model.UPSRRealModel
+scale: 2
+num_gpu: 1
+manual_seed: 0
+# find_unused_parameters: True
+queue_size: 160
+
+# dataset and data loader settings
+datasets:
+  train:
+    name: GalaxyMNIST
+    type: PairedImageDataset
+    dataroot_gt: datasets/galaxy_mnist/train/gt
+    dataroot_lq: datasets/galaxy_mnist/train/lq
+    filename_tmpl: '{}'
+    io_backend:
+      type: disk
+
+    mean: 0.5
+    std: 0.5
+
+    # data loader
+    num_worker_per_gpu: 6
+    batch_size_per_gpu: 64
+    micro_batchsize: 64
+    dataset_enlarge_ratio: 1
+    prefetch_mode: cuda
+    pin_memory: True
+    persistent_workers: True
+
+  val_1:
+    name: galaxy_mnist
+    type: PairedImageDataset
+    dataroot_gt: datasets/galaxy_mnist/val/gt
+    dataroot_lq: datasets/galaxy_mnist/val/lq
+    io_backend:
+      type: disk
+    batch_size: 32
+  
+
+degradation:
+  # gt_usm: True
+  scale: 2
+  # the first degradation process
+  resize_prob: [0.2, 0.7, 0.1]  # up, down, keep
+  resize_range: [0.15, 1.5]
+  gaussian_noise_prob: 0.5
+  noise_range: [1, 30]
+  poisson_scale_range: [0.05, 3.0]
+  gray_noise_prob: 0.4
+  jpeg_range: [30, 95]
+
+  gt_size: 128 
+  resize_back: False
+  use_sharp: False
+
+# network structures
+network_g:
+  target: basicsr.archs.swin_unet_arch.UNetModelSwin
+  params:
+    image_size: 64
+    in_channels: 48
+    model_channels: 64
+    out_channels: 3
+    attention_resolutions: [32,16]
+    dropout: 0
+    channel_mult: [1, 1, 1, 2]
+    num_res_blocks: [2, 2, 2, 2]
+    conv_resample: True
+    dims: 2
+    use_fp16: False
+    num_head_channels: 32
+    use_scale_shift_norm: True
+    resblock_updown: False
+    swin_depth: 2
+    swin_embed_dim: 192
+    window_size: 8
+    mlp_ratio: 4
+    cond_lq: True
+    lq_size: 64
+    num_feat: 128
+
+diffusion:
+  un: 0.1
+  min_noise: 0.4
+  target: models.script_util.create_gaussian_diffusion
+  params:
+    sf: 2
+    schedule_name: exponential
+    schedule_kwargs:
+      power: 0.2
+    etas_end: 0.99
+    steps: 5
+    min_noise_level: 0.2
+    kappa: 2.5
+    weighted_mse: False
+    predict_type: xstart
+    timestep_respacing: ~
+    scale_factor: 1.0
+    normalize_input: True
+    latent_flag: False
+
+network_mse:
+  target: basicsr.archs.atd_real_arch.ATD
+  ckpt: 
+    path: experiments/pretrained_models/atd_real.pth
+    strict_load_mse: true
+    param_key_mse: params_ema
+  params:
+    upscale: 2
+    in_chans: 3
+    img_size: 64
+    embed_dim: 96
+    depths: [6, 6, 6, 6, ]
+    num_heads: [4, 4, 4, 4, ]
+    window_size: 16
+    category_size: 128
+    num_tokens: 64
+    reducted_dim: 8
+    convffn_kernel_size: 7
+    img_range: 1.
+    mlp_ratio: 1
+    upsampler: 'pixelshuffledirect'
+    resi_connection: '1conv'
+    use_checkpoint: false
+
+# autoencoder:
+#   target: ldm.models.autoencoder.VQModelTorch
+#   ckpt_path: weights/autoencoder/autoencoder_vq_f4.pth
+#   use_fp16: True
+#   params:
+#     embed_dim: 3
+#     n_embed: 8192
+#     ddconfig:
+#       double_z: False
+#       z_channels: 3
+#       resolution: 256
+#       in_channels: 3
+#       out_ch: 3
+#       ch: 128
+#       ch_mult:
+#       - 1
+#       - 2
+#       - 4
+#       num_res_blocks: 2
+#       attn_resolutions: []
+#       dropout: 0.0
+#       padding_mode: zeros    
+
+
+# path
+path:
+  pretrain_network_g: ~
+  # pretrain_network_g: experiments/pretrained_models/upsr.pth
+  strict_load_g: true
+  resume_state: ~
+
+# training settings
+train:
+  use_fp16: true
+  ema_decay: 0.999
+  optim_g:
+    type: AdamW
+    lr: !!float 1e-4
+    weight_decay: 0
+    # betas: [0.9, 0.9]
+
+  scheduler:
+    type: MultiStepLR
+    milestones: [15000, 22000]
+    gamma: 0.5
+
+  # scheduler:
+  #   type: TrueCosineAnnealingLR
+  #   T_max: 195000
+  #   eta_min: !!float 6e-5
+
+  total_iter: 25000
+  warmup_iter: 1000
+
+  # losses
+  pixel_opt:
+    type: L1Loss
+    loss_weight: 1.0
+    reduction: mean
+
+  perceptual_opt:
+    lpips_weight: 0.5
+
+# validation settings
+val:
+  val_freq: 1000
+  suffix: ~
+  save_img: true
+  pbar: true
+  desired_min_size: 64
+  # chop_size: ~
+  # chop_stride: ~
+  chop_bs: 1
+  noise_repeat: false
+
+  metrics:
+    psnr:
+      fr: true
+
+    ssim:
+      fr: true
+
+    lpips:
+      fr: true
+      better: lower
+    
+    clipiqa:
+      fr: false
+
+    musiq:
+      fr: false
+
+    # maniqa:
+    #   fr: false
+
+    niqe:
+      fr: false
+      better: lower
+
+
+# logging settings
+logger:
+  print_freq: 100
+  save_checkpoint_freq: !!float 1e4
+  use_tb_logger: true
+  wandb:
+    project: ~
+    resume_id: ~
+
+# dist training settings
+# dist_params:
+#   backend: nccl
+#   port: 29500
+
+
+# 
