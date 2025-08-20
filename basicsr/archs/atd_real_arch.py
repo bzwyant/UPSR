@@ -927,7 +927,7 @@ class ATD(nn.Module):
                  qkv_bias=True,
                  norm_layer=nn.LayerNorm,
                  ape=False,
-                 patch_norm=True,
+                 patch_norm=False,
                  use_checkpoint=False,
                  upscale=2,
                  img_range=1.,
@@ -954,7 +954,7 @@ class ATD(nn.Module):
         self.num_layers = len(depths)
         self.embed_dim = embed_dim
         self.ape = ape
-        self.patch_norm = patch_norm
+        self.patch_norm = False # patch_norm
         self.num_features = embed_dim
         self.mlp_ratio = mlp_ratio
         self.window_size = window_size

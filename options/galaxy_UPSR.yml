@@ -1,12 +1,12 @@
 
 # general settings
-name: UPSR_galaxy
+name: ATD_light_SRx2_galaxy_scratch
 model_target: basicsr.models.upsr_real_model.UPSRRealModel
 scale: 2
-num_gpu: 1
+num_gpu: 2
 manual_seed: 0
 # find_unused_parameters: True
-queue_size: 160
+queue_size: 64  #how many preprocessed batches dataloader keeps ready in memory
 
 # dataset and data loader settings
 datasets:
@@ -19,39 +19,50 @@ datasets:
     io_backend:
       type: disk
 
-    mean: 0.5
-    std: 0.5
+    gt_size: 128
+    use_hflip: true
+    use_rot: true
 
     # data loader
-    num_worker_per_gpu: 6
-    batch_size_per_gpu: 64
-    micro_batchsize: 64
+    num_worker_per_gpu: 4
+    batch_size_per_gpu: 16
+    micro_batchsize: 16
     dataset_enlarge_ratio: 1
     prefetch_mode: cuda
     pin_memory: True
     persistent_workers: True
 
   val_1:
-    name: galaxy_mnist
+    name: Set1
     type: PairedImageDataset
     dataroot_gt: datasets/galaxy_mnist/val/gt
     dataroot_lq: datasets/galaxy_mnist/val/lq
     io_backend:
       type: disk
-    batch_size: 32
-  
+
+high_order_degradation: false
 
 degradation:
   # gt_usm: True
   scale: 2
   # the first degradation process
-  resize_prob: [0.2, 0.7, 0.1]  # up, down, keep
-  resize_range: [0.15, 1.5]
-  gaussian_noise_prob: 0.5
-  noise_range: [1, 30]
-  poisson_scale_range: [0.05, 3.0]
-  gray_noise_prob: 0.4
-  jpeg_range: [30, 95]
+  resize_prob: [0.0, 1.0, 0.0]  # up, down, keep
+  gaussian_noise_prob: 0.4
+  noise_range: [1, 8]
+  poisson_scale_range: [0.0, 0.1]
+  gray_noise_prob: 0.0
+  jpeg_range: [100, 100]  # No JPEG compression
+
+  # Disable second degradation process
+  second_order_prob: 0.0
+  second_blur_prob: 0.8
+  resize_prob2: [0.3, 0.4, 0.3]  # up, down, keep
+  resize_range2: [0.3, 1.2]
+  gaussian_noise_prob2: 0.5
+  noise_range2: [1, 25]
+  poisson_scale_range2: [0.05, 2.5]
+  gray_noise_prob2: 0.4
+  jpeg_range2: [30, 95]
 
   gt_size: 128 
   resize_back: False
@@ -63,7 +74,7 @@ network_g:
   params:
     image_size: 64
     in_channels: 48
-    model_channels: 64
+    model_channels: 32
     out_channels: 3
     attention_resolutions: [32,16]
     dropout: 0
@@ -71,7 +82,7 @@ network_g:
     num_res_blocks: [2, 2, 2, 2]
     conv_resample: True
     dims: 2
-    use_fp16: False
+    use_fp16: False  # Changed from false otherwise error when context is nullcontext
     num_head_channels: 32
     use_scale_shift_norm: True
     resblock_updown: False
@@ -106,15 +117,15 @@ diffusion:
 network_mse:
   target: basicsr.archs.atd_real_arch.ATD
   ckpt: 
-    path: experiments/pretrained_models/atd_real.pth
-    strict_load_mse: true
+    path: experiments/pretrained_models/ATD_light_SRx2_galaxy.pth
+    strict_load_mse: false   # true 
     param_key_mse: params_ema
   params:
     upscale: 2
     in_chans: 3
     img_size: 64
-    embed_dim: 96
-    depths: [6, 6, 6, 6, ]
+    embed_dim: 32 # reduced from 48
+    depths: [4, 4, 4, 4, ]
     num_heads: [4, 4, 4, 4, ]
     window_size: 16
     category_size: 128
@@ -126,60 +137,30 @@ network_mse:
     upsampler: 'pixelshuffledirect'
     resi_connection: '1conv'
     use_checkpoint: false
-
-# autoencoder:
-#   target: ldm.models.autoencoder.VQModelTorch
-#   ckpt_path: weights/autoencoder/autoencoder_vq_f4.pth
-#   use_fp16: True
-#   params:
-#     embed_dim: 3
-#     n_embed: 8192
-#     ddconfig:
-#       double_z: False
-#       z_channels: 3
-#       resolution: 256
-#       in_channels: 3
-#       out_ch: 3
-#       ch: 128
-#       ch_mult:
-#       - 1
-#       - 2
-#       - 4
-#       num_res_blocks: 2
-#       attn_resolutions: []
-#       dropout: 0.0
-#       padding_mode: zeros    
-
+    patch_norm: false   # tried adding this with strict_load_mse: true and it failed
 
 # path
 path:
   pretrain_network_g: ~
-  # pretrain_network_g: experiments/pretrained_models/upsr.pth
   strict_load_g: true
   resume_state: ~
 
 # training settings
 train:
-  use_fp16: true
   ema_decay: 0.999
   optim_g:
     type: AdamW
-    lr: !!float 1e-4
-    weight_decay: 0
-    # betas: [0.9, 0.9]
+    lr: !!float 3e-4
+    weight_decay: !!float 1e-4
+    betas: [0.9, 0.9]
 
   scheduler:
     type: MultiStepLR
-    milestones: [15000, 22000]
+    milestones: [10000, 20000, 25000]
     gamma: 0.5
 
-  # scheduler:
-  #   type: TrueCosineAnnealingLR
-  #   T_max: 195000
-  #   eta_min: !!float 6e-5
-
-  total_iter: 25000
-  warmup_iter: 1000
+  total_iter: 30000
+  warmup_iter: 1500
 
   # losses
   pixel_opt:
@@ -187,59 +168,32 @@ train:
     loss_weight: 1.0
     reduction: mean
 
-  perceptual_opt:
-    lpips_weight: 0.5
-
 # validation settings
 val:
-  val_freq: 1000
-  suffix: ~
+  val_freq: !!float 2e3
   save_img: true
-  pbar: true
-  desired_min_size: 64
-  # chop_size: ~
-  # chop_stride: ~
-  chop_bs: 1
-  noise_repeat: false
 
   metrics:
-    psnr:
-      fr: true
-
-    ssim:
-      fr: true
-
-    lpips:
-      fr: true
-      better: lower
+    psnr: # metric name, can be arbitrary
+      type: calculate_psnr
+      crop_border: 2
+      test_y_channel: yes
     
-    clipiqa:
-      fr: false
-
-    musiq:
-      fr: false
-
-    # maniqa:
-    #   fr: false
-
-    niqe:
-      fr: false
-      better: lower
-
+    ssim: # metric name, can be arbitrary
+      type: calculate_ssim
+      crop_border: 2
+      test_y_channel: yes
 
 # logging settings
 logger:
-  print_freq: 100
-  save_checkpoint_freq: 2500
+  print_freq: 50
+  save_checkpoint_freq: !!float 2e3
   use_tb_logger: true
   wandb:
     project: ~
     resume_id: ~
 
 # dist training settings
-# dist_params:
-#   backend: nccl
-#   port: 29500
-
-
-# 
+dist_params:
+  backend: nccl
+  port: 29500

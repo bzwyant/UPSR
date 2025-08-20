@@ -150,7 +150,12 @@ class UPSRRealModel(SRModel):
     def backward_step(self, dif_loss_wrapper, micro_lq, micro_gt, num_grad_accumulate, tt):
         loss_dict = OrderedDict()
 
-        context = amp.autocast if self.opt['train'].get('use_fp16', False) else nullcontext
+        # context = amp.autocast if self.opt['train'].get('use_fp16', False) else nullcontext
+        if self.opt['train'].get('use_fp16', False):
+            context = amp.autocast
+        else:
+            context = lambda **kwargs: nullcontext()
+
         with context(device_type="cuda"):
             losses, x_t, x0_pred = dif_loss_wrapper()
             losses['loss'] = losses['mse']
@@ -395,6 +400,7 @@ class UPSRRealModel(SRModel):
         if training and self.opt.get('high_order_degradation', True):
             # training data synthesis
             self.gt = data['gt'].to(self.device)
+
             # USM sharpen the GT images
             if self.opt['degradation']['use_sharp'] is True:
                 self.gt = self.usm_sharpener(self.gt)

@@ -1,3 +1,16 @@
 .DS_Store
 
 *.pth
+
+datasets/
+experiments/*
+logs
+tb_logger
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+*.egg-info/
+.eggs/
